@@ -1,19 +1,16 @@
-# Header - Fixed Version
-st.markdown(f"""
-<div class="header-container">
-    <div class="flag-container">
-        {flag_svg}
-    </div>
-    <h1 style="display: inline-block; vertical-align: middle;">PK Video Downloader</h1>
-    <p>Professional Video Downloader for Rutube, YouTube & More</p>
-    <div style="margin-top: 15px;">
-        <span class="feature-badge">⚡ Fast</span>
-        <span class="feature-badge">🛡️ Secure</span>
-        <span class="feature-badge">🎯 Unlimited</span>
-        <span class="feature-badge">🇵🇰 Made in Pakistan</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)  # ← Yeh line zaroori hai!
+# Simple header without HTML
+st.title("🇵🇰 PK Video Downloader")
+st.markdown("### Professional Video Downloader for Rutube, YouTube & More")
+st.markdown("---")
+
+# Feature badges
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Speed", "⚡ Fast")
+col2.metric("Security", "🛡️ Secure")
+col3.metric("Downloads", "🎯 Unlimited")
+col4.metric("Made in", "🇵🇰 Pakistan")
+
+st.markdown("---")
 import streamlit as st
 import yt_dlp
 import os
