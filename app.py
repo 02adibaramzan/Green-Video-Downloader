@@ -1,123 +1,419 @@
 import streamlit as st
 import yt_dlp
 import os
+import uuid
+from datetime import datetime
+import time
+import threading
+import base64
 
-# Page Settings (Website ka Title aur Design)
+# Page configuration
 st.set_page_config(
-    page_title="Universal Video Downloader",
-    page_icon="📥",
-    layout=centered
+    page_title="PK Video Downloader",
+    page_icon="🇵🇰",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# Attractive UI Customization (Website ka Rang aur Style)
-st.markdown(
-    style
-    .main { background-color #f8f9fa; }
-    .stButtonbutton {
-        width 100%;
-        background-color #28a745;
-        color white;
-        font-weight bold;
-        border-radius 8px;
-        padding 12px;
-        font-size 18px;
-    }
-    .stButtonbuttonhover { background-color #218838; }
-    style
-, unsafe_allow_html=True)
+# Configuration
+DOWNLOAD_DIR = 'downloads'
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-st.title(📥 Premium Video & Audio Downloader)
-st.caption(Rutube, YouTube, TikTok, Instagram se muft download karein!)
-
-# Input Section (Jahan user link dale ga)
-url = st.text_input(🔗 Video ya Channel ka Link yahan paste karein, placeholder=https...)
-
-col1, col2 = st.columns(2)
-with col1
-    dl_mode = st.selectbox(
-        🛠️ Download Mode Chunein,
-        [Sirf Video (Best Quality), Sirf Audio (MP3), Video aur Thumbnail Dono, Sirf Thumbnail]
-    )
-with col2
-    video_quality = st.selectbox(
-        🎞️ Video Resolution,
-        [Best Quality, 1080p, 720p, 480p]
-    )
-
-# Folder jahan server par file save hogi
-DOWNLOAD_DIR = downloads
-if not os.path.exists(DOWNLOAD_DIR)
-    os.makedirs(DOWNLOAD_DIR)
-
-# Options configuration for yt-dlp
-def get_ydl_opts(mode, quality)
-    opts = {
-        'outtmpl' f'{DOWNLOAD_DIR}%(title)s.%(ext)s',
-        'ignoreerrors' True,
-        'nooverwrites' True,
+# Custom CSS for professional look
+st.markdown("""
+<style>
+    /* Pakistan Flag Colors */
+    :root {
+        --pk-green: #01411C;
+        --pk-white: #FFFFFF;
     }
     
-    q_format = bestvideo+bestaudiobest
-    if quality == 1080p q_format = bestvideo[height=1080]+bestaudiobest[height=1080]
-    elif quality == 720p q_format = bestvideo[height=720]+bestaudiobest[height=720]
-    elif quality == 480p q_format = bestvideo[height=480]+bestaudiobest[height=480]
+    /* Main container */
+    .main {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+    }
+    
+    /* Header styling */
+    .header-container {
+        background: linear-gradient(135deg, #01411C 0%, #006400 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+        color: white;
+    }
+    
+    .header-container h1 {
+        color: white !important;
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+    
+    .header-container p {
+        color: rgba(255,255,255,0.9);
+        margin: 10px 0 0 0;
+        font-size: 1.1rem;
+    }
+    
+    /* Flag styling */
+    .flag-container {
+        display: inline-block;
+        margin-right: 15px;
+        vertical-align: middle;
+    }
+    
+    .flag-svg {
+        width: 60px;
+        height: 45px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
+    /* Card styling */
+    .stButton>button {
+        background: linear-gradient(135deg, #01411C 0%, #006400 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 10px;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(1, 65, 28, 0.4);
+    }
+    
+    /* Download button */
+    .stDownloadButton>button {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 10px;
+        width: 100%;
+    }
+    
+    /* Feature badges */
+    .feature-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+        margin: 5px;
+        font-size: 0.9rem;
+    }
+    
+    /* Section headers */
+    .section-header {
+        background: rgba(1, 65, 28, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0 15px 0;
+        border-left: 4px solid #01411C;
+    }
+    
+    .section-header h3 {
+        color: #01411C;
+        margin: 0;
+        font-size: 1.3rem;
+    }
+    
+    /* Success message */
+    .success-message {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 1.1rem;
+        margin: 20px 0;
+    }
+    
+    /* Footer */
+    .footer {
+        text-align: center;
+        color: white;
+        margin-top: 3rem;
+        padding: 20px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-    if mode == Sirf Audio (MP3)
-        opts.update({
-            'format' 'bestaudiobest',
-            'postprocessors' [{
-                'key' 'FFmpegExtractAudio',
-                'preferredcodec' 'mp3',
-                'preferredquality' '192',
-            }]
-        })
-    elif mode == Sirf Thumbnail
-        opts.update({'skip_download' True, 'writethumbnail' True})
-    elif mode == Video aur Thumbnail Dono
-        opts.update({'format' q_format, 'writethumbnail' True})
-    else
-        opts.update({'format' q_format})
-        
-    return opts
+# Auto-cleanup function
+def cleanup_old_files():
+    """Delete files older than 30 minutes"""
+    while True:
+        time.sleep(1800)  # 30 minutes
+        current_time = datetime.now()
+        for filename in os.listdir(DOWNLOAD_DIR):
+            file_path = os.path.join(DOWNLOAD_DIR, filename)
+            try:
+                file_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+                if (current_time - file_time).total_seconds() > 1800:
+                    os.remove(file_path)
+            except:
+                pass
 
-# Action Button
-if st.button(🚀 Processing Shuru Karein)
-    if not url
-        st.warning(Meharbani karke pehle ek link dalein!)
-    else
-        with st.spinner(Server par download ho raha hai... thoda intezar karein...)
-            try
-                ydl_opts = get_ydl_opts(dl_mode, video_quality)
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl
-                    info = ydl.extract_info(url, download=True)
+# Start cleanup thread
+cleanup_thread = threading.Thread(target=cleanup_old_files, daemon=True)
+cleanup_thread.start()
+
+# Pakistan Flag SVG
+flag_svg = """
+<svg class="flag-svg" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+    <rect width="30" height="90" fill="#FFFFFF"/>
+    <rect x="30" width="90" height="90" fill="#01411C"/>
+    <circle cx="75" cy="45" r="20" fill="#FFFFFF"/>
+    <circle cx="82" cy="45" r="16" fill="#01411C"/>
+    <polygon points="85,45 88,52 95,52 89,57 91,64 85,60 79,64 81,57 75,52 82,52" fill="#FFFFFF"/>
+</svg>
+"""
+
+# Header
+st.markdown(f"""
+<div class="header-container">
+    <div class="flag-container">
+        {flag_svg}
+    </div>
+    <h1 style="display: inline-block; vertical-align: middle;">PK Video Downloader</h1>
+    <p>Professional Video Downloader for Rutube, YouTube & More</p>
+    <div style="margin-top: 15px;">
+        <span class="feature-badge">⚡ Fast</span>
+        <span class="feature-badge">🛡️ Secure</span>
+        <span class="feature-badge">🎯 Unlimited</span>
+        <span class="feature-badge">🇵🇰 Made in Pakistan</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Initialize session state
+if 'download_complete' not in st.session_state:
+    st.session_state.download_complete = False
+if 'downloaded_file' not in st.session_state:
+    st.session_state.downloaded_file = None
+
+# Main form
+with st.container():
+    # Basic Information Section
+    st.markdown('<div class="section-header"><h3>🔗 Basic Information</h3></div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        url = st.text_input(
+            "Video/Channel URL",
+            placeholder="https://rutube.ru/channel/... or https://youtube.com/...",
+            help="Paste the video or channel URL here"
+        )
+    
+    with col2:
+        items = st.text_input(
+            "Number of Videos",
+            value="all",
+            help="Enter number (e.g., 5) or 'all' for complete playlist"
+        )
+    
+    dl_mode = st.selectbox(
+        "Download Mode",
+        options=["🎥 Video Only", "🎵 Audio Only (MP3)", "🖼️ Video + Thumbnail", "📸 Thumbnail Only"],
+        index=0
+    )
+    
+    # Video Quality Section
+    st.markdown('<div class="section-header"><h3>🎬 Video Quality & Format</h3></div>', unsafe_allow_html=True)
+    
+    col3, col4 = st.columns(2)
+    
+    with col3:
+        video_quality = st.selectbox(
+            "Video Quality",
+            options=["Best Quality", "1080p (Full HD)", "720p (HD)", "480p (SD)", "360p (Low)"],
+            index=0
+        )
+    
+    with col4:
+        output_format = st.selectbox(
+            "Output Format",
+            options=["MP4", "MKV", "WebM", "AVI"],
+            index=0
+        )
+    
+    # Advanced Options Section
+    st.markdown('<div class="section-header"><h3>⚙️ Advanced Options</h3></div>', unsafe_allow_html=True)
+    
+    col5, col6 = st.columns(2)
+    
+    with col5:
+        download_subtitles = st.checkbox(
+            "📝 Download Subtitles (EN/UR)",
+            value=False,
+            help="Download available subtitles in English and Urdu"
+        )
+    
+    with col6:
+        embed_metadata = st.checkbox(
+            "ℹ️ Embed Metadata",
+            value=True,
+            help="Embed title, date, and other metadata in the file"
+        )
+    
+    # Download Button
+    st.markdown("")
+    download_clicked = st.button("🚀 Start Download", type="primary", use_container_width=True)
+    
+    # Process download
+    if download_clicked:
+        if not url:
+            st.error("❌ Please enter a valid URL!")
+        else:
+            with st.spinner("🔄 Processing your request..."):
+                try:
+                    # Generate unique task ID
+                    task_id = str(uuid.uuid4())[:8]
+                    timestamp = datetime.now().strftime('%Y%m%d')
+                    output_path = os.path.join(DOWNLOAD_DIR, f"{task_id}_{timestamp}_%(title)s.%(ext)s")
                     
-                    # File ka naam maloom karna taake user ko download button diya ja sake
-                    if 'entries' in info  # Agar playlist hai
-                        video_title = info['entries'][0]['title']
-                        ext = info['entries'][0].get('ext', 'mp4')
-                    else
-                        video_title = info.get('title', 'video')
-                        ext = info.get('ext', 'mp4')
+                    # yt-dlp options
+                    ydl_opts = {
+                        'outtmpl': output_path,
+                        'ignoreerrors': True,
+                        'nooverwrites': True,
+                        'quiet': False,
+                        'no_warnings': False,
+                    }
                     
-                    if dl_mode == Sirf Audio (MP3) ext = mp3
-                    elif dl_mode == Sirf Thumbnail ext = jpg
+                    # Playlist items
+                    if items != 'all':
+                        try:
+                            ydl_opts['playlist_items'] = f"1-{int(items)}"
+                        except:
+                            st.error("❌ Invalid number of items!")
+                            st.stop()
                     
-                    filename = f{video_title}.{ext}
-                    filepath = os.path.join(DOWNLOAD_DIR, filename)
+                    # Video quality mapping
+                    quality_map = {
+                        'Best Quality': 'bestvideo+bestaudio/best',
+                        '1080p (Full HD)': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+                        '720p (HD)': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
+                        '480p (SD)': 'bestvideo[height<=480]+bestaudio/best[height<=480]',
+                        '360p (Low)': 'bestvideo[height<=360]+bestaudio/best[height<=360]'
+                    }
                     
-                    st.success(🎉 Server par download mukammal!)
+                    # Download mode handling
+                    mode_map = {
+                        "🎥 Video Only": "2",
+                        "🎵 Audio Only (MP3)": "1",
+                        "🖼️ Video + Thumbnail": "3",
+                        "📸 Thumbnail Only": "4"
+                    }
                     
-                    # User ke liye Direct Download Button (MobilePC mein save karne ke liye)
-                    if os.path.exists(filepath)
-                        with open(filepath, rb) as file
-                            st.download_button(
-                                label=💾 Apne Device Mein Save Karein,
-                                data=file,
-                                file_name=filename,
-                                mime=applicationoctet-stream
-                            )
-                    else
-                        st.info(💡 Files server par save ho chuki hain! Multiple files hone ki soorat mein aap downloads folder check kar sakte hain.)
+                    selected_mode = mode_map[dl_mode]
+                    
+                    if selected_mode == '1':  # Audio only
+                        ydl_opts['format'] = 'bestaudio/best'
+                        ydl_opts['postprocessors'] = [{
+                            'key': 'FFmpegExtractAudio',
+                            'preferredcodec': 'mp3',
+                            'preferredquality': '320',
+                        }]
+                    elif selected_mode == '2':  # Video
+                        ydl_opts['format'] = quality_map.get(video_quality, 'best')
+                        if output_format != 'MP4':
+                            ydl_opts['postprocessors'] = [{
+                                'key': 'FFmpegVideoConvertor',
+                                'preferedformat': output_format.lower(),
+                            }]
+                    elif selected_mode == '3':  # Video + Thumbnail
+                        ydl_opts['format'] = quality_map.get(video_quality, 'best')
+                        ydl_opts['writethumbnail'] = True
+                    elif selected_mode == '4':  # Thumbnail only
+                        ydl_opts['skip_download'] = True
+                        ydl_opts['writethumbnail'] = True
+                    
+                    # Subtitles
+                    if download_subtitles:
+                        ydl_opts['writesubtitles'] = True
+                        ydl_opts['writeautomaticsub'] = True
+                        ydl_opts['subtitleslangs'] = ['en', 'ur']
+                    
+                    # Metadata embedding
+                    if embed_metadata:
+                        if 'postprocessors' not in ydl_opts:
+                            ydl_opts['postprocessors'] = []
+                        ydl_opts['postprocessors'].append({
+                            'key': 'FFmpegMetadata',
+                        })
+                    
+                    # Download
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+                    
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        status_text.text("📥 Extracting video information...")
+                        progress_bar.progress(20)
                         
-            except Exception as e
-                st.error(fKuch galti hui {str(e)})
+                        info = ydl.extract_info(url, download=True)
+                        
+                        if info:
+                            status_text.text("💾 Processing file...")
+                            progress_bar.progress(60)
+                            
+                            filename = ydl.prepare_filename(info)
+                            
+                            # Handle audio conversion
+                            if selected_mode == '1':
+                                filename = filename.rsplit('.', 1)[0] + '.mp3'
+                            
+                            # Handle format conversion
+                            if selected_mode == '2' and output_format != 'MP4':
+                                filename = filename.rsplit('.', 1)[0] + f'.{output_format.lower()}'
+                            
+                            if os.path.exists(filename):
+                                progress_bar.progress(100)
+                                status_text.text("✅ Download complete!")
+                                
+                                # Store in session state
+                                st.session_state.download_complete = True
+                                st.session_state.downloaded_file = filename
+                                
+                                # Success message
+                                st.markdown("""
+                                <div class="success-message">
+                                    <h3>✅ Download Successful!</h3>
+                                    <p>Your file is ready to download below</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                # Download button
+                                with open(filename, "rb") as file:
+                                    st.download_button(
+                                        label="📥 Download File",
+                                        data=file,
+                                        file_name=os.path.basename(filename),
+                                        mime="application/octet-stream",
+                                        use_container_width=True
+                                    )
+                            else:
+                                st.error("❌ File not found after download!")
+                        else:
+                            st.error("❌ Could not extract video information!")
+                            
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
+
+# Footer
+st.markdown("""
+<div class="footer">
+    <p>🇵🇰 Made with ❤️ in Pakistan</p>
+    <p style="font-size: 0.9rem; opacity: 0.8;">© 2026 PK Video Downloader. All rights reserved.</p>
+</div>
+""", unsafe_allow_html=True)
