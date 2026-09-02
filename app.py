@@ -1,5 +1,5 @@
 # Simple header without HTML
-st.title("🇵🇰 PK Video Downloader")
+st.title("PK Video Downloader")
 st.markdown("### Professional Video Downloader for Rutube, YouTube & More")
 st.markdown("---")
 
