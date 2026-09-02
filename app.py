@@ -5,7 +5,7 @@ import os
 # Page Settings (Website ka Title aur Design)
 st.set_page_config(
     page_title=Universal Video Downloader,
-    page_icon=📥,
+    page_icon="📥",
     layout=centered
 )
 
