@@ -1,3 +1,19 @@
+# Header - Fixed Version
+st.markdown(f"""
+<div class="header-container">
+    <div class="flag-container">
+        {flag_svg}
+    </div>
+    <h1 style="display: inline-block; vertical-align: middle;">PK Video Downloader</h1>
+    <p>Professional Video Downloader for Rutube, YouTube & More</p>
+    <div style="margin-top: 15px;">
+        <span class="feature-badge">⚡ Fast</span>
+        <span class="feature-badge">🛡️ Secure</span>
+        <span class="feature-badge">🎯 Unlimited</span>
+        <span class="feature-badge">🇵🇰 Made in Pakistan</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)  # ← Yeh line zaroori hai!
 import streamlit as st
 import yt_dlp
 import os
